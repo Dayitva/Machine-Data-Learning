@@ -38,8 +38,8 @@ fertile_parents = np.zeroes(pop_size)
 
 children = np.zeroes(pop_size)
 
-colonization = np.zeroes(pop_size*10)
-colonization_fitness = np.zeroes(pop_size*10)
+colonization = []
+colonization_fitness = []
 
 while generation < 10:
 
@@ -61,16 +61,16 @@ while generation < 10:
 
     print("FERTILE PARENTS: ", fertile_parents)
 
-    mate_count = 0;
+    mate_count = 0
 
     while mate_count < 10:
-        offspring = crossover(fertile_parents[mate_count], fertile_parents[mate_count+1])
-        parents[mate_count] = offspring[mate_count]
-        parents[mate_count+1] = offspring[mate_count+1]
+        offspring1, offspring2 = crossover(fertile_parents[mate_count], fertile_parents[mate_count+1])
+        parents[mate_count] = offspring1
+        parents[mate_count+1] = offspring2
         mate_count += 2
 
-    offspring = crossover(fertile_parents[0], fertile_parents[10])
-    parents[10] = offspring[0]
+    offspring1, offspring2 = crossover(fertile_parents[0], fertile_parents[10])
+    parents[10] = offspring1
 
     generation += 1
 
