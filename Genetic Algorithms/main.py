@@ -57,7 +57,7 @@ while generation < 10:
 
     colonization_fitness.append(fitness_pop)
 
-    fertile_parents = choice(parents, pop_size, p=prob_pop)
+    fertile_parents = np.choice(parents, pop_size, p=prob_pop)
 
     print("FERTILE PARENTS: ", fertile_parents)
 
@@ -67,7 +67,10 @@ while generation < 10:
         offspring = crossover(fertile_parents[mate_count], fertile_parents[mate_count+1])
         parents[mate_count] = offspring[mate_count]
         parents[mate_count+1] = offspring[mate_count+1]
-        mate_count+= 1
+        mate_count += 2
+
+    offspring = crossover(fertile_parents[0], fertile_parents[10])
+    parents[10] = offspring[0]
 
     generation += 1
 
