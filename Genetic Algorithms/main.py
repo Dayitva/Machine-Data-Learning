@@ -23,8 +23,8 @@ def crossover(parent1, parent2):
     length1 = int(np.size(parent1)/2)
     length2 = int(np.size(parent2)/2)
 
-    crossedParent1 = np.concatenate(parent1[:length1], parent2[length2:])
-    crossedParent2 = np.concatenate(parent1[length1:], parent2[:length2])
+    crossedParent1 = np.concatenate((parent1[:length1], parent2[length2:]))
+    crossedParent2 = np.concatenate((parent1[length1:], parent2[:length2]))
 
     return crossedParent1, crossedParent2
 
@@ -35,7 +35,7 @@ parents = [0 for i in range(10)]
 
 for i in range(10):
     parents[i] = np.copy(mutation(initial_population))
-    
+
 fertile_parents = np.zeros(pop_size2)
 
 children = np.zeros(pop_size2)
@@ -45,16 +45,17 @@ colonization_fitness = []
 
 while generation < pop_size2:
     for i in range(pop_size2):
-        
+
         colonization.append(parents[i])
 
         errors = get_errors(SECRET_KEY, parents[i].tolist())
-        print("GENERATION: ", generation)
-        print("PARENTS: ", parents[i])
-        print("ERRORS: ", errors)
+        with open("logs.txt", "a", encoding="utf8") as text_file:
+            print("GENERATION: ", generation, file=text_file)
+            print("PARENTS: ", parents[i], file=text_file)
+            print("ERRORS: ", errors, file=text_file)
 
         fitness_pop[i] = fitness(errors[0], errors[1])
-            
+
     for i in range(pop_size2):
         total_err = np.sum(fitness_pop)
         prob_pop[i] = (fitness_pop[i]/total_err)
@@ -65,7 +66,8 @@ while generation < pop_size2:
     fertile_parents_idx = np.random.choice(idx, pop_size2, p=prob_pop)
 
     for i in range(pop_size2):
-        print("FERTILE PARENTS: ", parents[fertile_parents_idx[i]])
+        with open("logs.txt", "a", encoding="utf8") as text_file:
+            print("FERTILE PARENTS: ", parents[fertile_parents_idx[i]], file=text_file)
 
     mate_count = 0
 
@@ -75,12 +77,13 @@ while generation < pop_size2:
         parents[mate_count+1] = offspring2
         mate_count += 2
 
-    offspring1, offspring2 = crossover(parents[fertile_parents_idx[0]], parents[fertile_parents_idx[10]])
-    parents[10] = offspring1
+    offspring1, offspring2 = crossover(parents[fertile_parents_idx[0]], parents[fertile_parents_idx[9]])
+    parents[9] = offspring1
 
     generation += 1
 
-    print("====================================================")
+    with open("logs.txt", "a", encoding="utf8") as text_file:
+        print("====================================================", file=text_file)
 
 
 
