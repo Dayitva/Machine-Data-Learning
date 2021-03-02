@@ -88,7 +88,7 @@ while generation < pop_size2:
     with open("logs.txt", "a", encoding="utf8") as text_file:
         print("====================================================", file=text_file)
 
-    crossover_probability -= 1
+    crossover_probability -= 0.1
 
 population = len(colonization_fitness)
 
