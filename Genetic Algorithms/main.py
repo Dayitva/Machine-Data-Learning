@@ -27,7 +27,7 @@ def crossover(parent1, parent2, probability, mutate_from, mutate_till):
     crossedParent1 = np.concatenate((parent1[:length1], parent2[length2:]))
     crossedParent2 = np.concatenate((parent1[length1:], parent2[:length2]))
 
-    return mutation(crossedParent1, probability, mutate_from, mutate_till), mutation(crossedParent2, probability, mutate_from, mutate_till)
+    return np.copy(mutation(crossedParent1, probability, mutate_from, mutate_till)), np.copy(mutation(crossedParent2, probability, mutate_from, mutate_till))
 
 generation = 0
 fitness_pop = np.zeros(pop_size2)
@@ -79,7 +79,7 @@ while generation < pop_size2:
         parents[mate_count+1] = offspring2
         mate_count += 2
 
-    offspring1, offspring2 = crossover(parents[fertile_parents_idx[0]], parents[fertile_parents_idx[9]])
+    offspring1, offspring2 = crossover(parents[fertile_parents_idx[0]], parents[fertile_parents_idx[9]], crossover_probability, 0.9, 1.1)
     parents[9] = offspring1
 
     generation += 1
@@ -88,6 +88,8 @@ while generation < pop_size2:
         print("====================================================", file=text_file)
 
     crossover_probability -= 0.1
+    if(crossover_probability < 0):
+        crossover_probability = 0
 
 population = len(colonization_fitness)
 
