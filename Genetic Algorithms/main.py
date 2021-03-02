@@ -1,5 +1,6 @@
 import random
 from client import *
+import datetime
 
 # overfit_file = open("overfit.txt", "r")
 # initial_population = overfit_file.read()
@@ -60,7 +61,7 @@ while generation < pop_size2:
         total_err = np.sum(fitness_pop)
         prob_pop[i] = (fitness_pop[i]/total_err)
 
-    colonization_fitness.append(fitness_pop)
+    colonization_fitness.append(fitness_pop[i])
 
     idx = [i for i in range(pop_size2)]
     fertile_parents_idx = np.random.choice(idx, pop_size2, p=prob_pop)
@@ -85,9 +86,19 @@ while generation < pop_size2:
     with open("logs.txt", "a", encoding="utf8") as text_file:
         print("====================================================", file=text_file)
 
+    population = len(colonization_fitness)
 
+max_idx = 0
+alpha_fitness = colonization_fitness[max_idx]
 
+for i in range(0, population):
+    if alpha_fitness < colonization_fitness[i]:
+        max_idx = i
+        alpha_fitness = colonization_fitness[max_idx]
 
+with open("logs.txt", "a", encoding="utf8") as text_file:
+    print("THE ALPHA IS: ", colonization[max_idx], " with fitness ", alpha_fitness," as logged on ", datetime.datetime.now(), file=text_file)
+    print("====================================================", file=text_file)
 
 
 
