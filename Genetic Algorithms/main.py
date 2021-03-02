@@ -58,12 +58,11 @@ while generation < pop_size2:
             print("ERRORS: ", errors, file=text_file)
 
         fitness_pop[i] = fitness(errors[0], errors[1])
+        colonization_fitness.append(fitness_pop[i])
 
     for i in range(pop_size2):
         total_err = np.sum(fitness_pop)
         prob_pop[i] = (fitness_pop[i]/total_err)
-
-    colonization_fitness.append(fitness_pop[i])
 
     idx = [i for i in range(pop_size2)]
     fertile_parents_idx = np.random.choice(idx, pop_size2, p=prob_pop)
