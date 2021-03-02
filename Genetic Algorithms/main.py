@@ -18,7 +18,7 @@ def fitness(error1, error2):
 
 def mutation(population, probability, mutate_from, mutate_till):
     mutation_factor = random.uniform(mutate_from, mutate_till)
-    return [random.choice([i, i*mutation_factor], p=[probability, 1-probability]) for i in population]
+    return [np.random.choice([i, i*mutation_factor], p=[probability, 1-probability]) for i in population]
 
 def crossover(parent1, parent2, probability, mutate_from, mutate_till):
     length1 = int(np.size(parent1)/2)
