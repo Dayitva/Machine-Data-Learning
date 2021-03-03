@@ -14,20 +14,30 @@ pop_size2 = 10
 # train_error, validation_error = [13510723304.19212, 368296592820.6967]
 
 def fitness(error1, error2):
-    return 1/(error1 + error2)
+    return 1/((error1*0.7) + error2)
 
 def mutation(population, probability, mutate_from, mutate_till):
     mutation_factor = random.uniform(mutate_from, mutate_till)
     return [np.random.choice([i, i*mutation_factor], p=[probability, 1-probability]) for i in population]
 
-def crossover(parent1, parent2, probability, mutate_from, mutate_till):
-    length1 = int(np.size(parent1)/2)
-    length2 = int(np.size(parent2)/2)
+def crossover(parent1, parent2):
+    child1 = np.zeros(11)
+    child2 = np.zeros(11)
 
-    crossedParent1 = np.concatenate((parent1[:length1], parent2[length2:]))
-    crossedParent2 = np.concatenate((parent1[length1:], parent2[:length2]))
+    u = random.uniform(0, 0.99)
+    n_c = 5
 
-    return np.copy(mutation(crossedParent1, probability, mutate_from, mutate_till)), np.copy(mutation(crossedParent2, probability, mutate_from, mutate_till))
+    if (u < 0.5):
+        beta = (2 * u)**((n_c + 1)**-1)
+    else:
+        beta = ((2*(1-u))**-1)**((n_c + 1)**-1)
+
+    parent1 = np.array(parent1)
+    parent2 = np.array(parent2)
+    child1 = 0.5*((1 + beta) * parent1 + (1 - beta) * parent2)
+    child2 = 0.5*((1 - beta) * parent1 + (1 + beta) * parent2)
+
+    return child1, child2
 
 generation = 0
 fitness_pop = np.zeros(pop_size2)
@@ -35,7 +45,7 @@ prob_pop = np.zeros(pop_size2)
 parents = [0 for i in range(10)]
 
 for i in range(10):
-    parents[i] = np.copy(mutation(initial_population, 0.9, 0.9, 1.1))
+    parents[i] = np.copy(mutation(initial_population, 0.272727, 0.9, 1.1))
 
 fertile_parents = np.zeros(pop_size2)
 
@@ -44,7 +54,7 @@ children = np.zeros(pop_size2)
 colonization = []
 colonization_fitness = []
 
-crossover_probability = 0.8
+crossover_probability = 0.272727
 
 while generation < pop_size2:
     for i in range(pop_size2):
@@ -64,32 +74,31 @@ while generation < pop_size2:
         total_err = np.sum(fitness_pop)
         prob_pop[i] = (fitness_pop[i]/total_err)
 
-    idx = [i for i in range(pop_size2)]
-    fertile_parents_idx = np.random.choice(idx, pop_size2, p=prob_pop)
+    # idx = [i for i in range(pop_size2)]
+    # fertile_parents_idx = np.random.choice(idx, pop_size2, p=prob_pop)
+
+    np_fitness = np.copy(colonization_fitness)
+    np_colonization = np.copy(colonization)
+
+    fertile_parents_idx = np_colonization[np.argsort(np_fitness)]
+    fertile_parents_idx = fertile_parents_idx[-1*pop_size2:]
 
     for i in range(pop_size2):
         with open("logs.txt", "a", encoding="utf8") as text_file:
-            print("FERTILE PARENTS: ", parents[fertile_parents_idx[i]], file=text_file)
+            print("FERTILE PARENTS: ", fertile_parents_idx[i], file=text_file)
 
     mate_count = 0
 
     while mate_count < 10:
-        offspring1, offspring2 = crossover(parents[fertile_parents_idx[mate_count]], parents[fertile_parents_idx[mate_count+1]], crossover_probability, 0.9, 1.1)
+        offspring1, offspring2 = crossover(fertile_parents_idx[mate_count], fertile_parents_idx[mate_count+1])
         parents[mate_count] = offspring1
         parents[mate_count+1] = offspring2
         mate_count += 2
-
-    offspring1, offspring2 = crossover(parents[fertile_parents_idx[0]], parents[fertile_parents_idx[9]], crossover_probability, 0.9, 1.1)
-    parents[9] = offspring1
 
     generation += 1
 
     with open("logs.txt", "a", encoding="utf8") as text_file:
         print("====================================================", file=text_file)
-
-    crossover_probability -= 0.1
-    if(crossover_probability < 0):
-        crossover_probability = 0
 
 population = len(colonization_fitness)
 
