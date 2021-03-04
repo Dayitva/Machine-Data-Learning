@@ -9,8 +9,11 @@ initial_population = [0.0, -1.45799022e-12, -2.28980078e-13,  4.62010753e-11,
                       -1.75214813e-10, -1.83669770e-15,  8.52944060e-16,
                       2.29423303e-05, -2.04721003e-06, -1.59792834e-08,  9.98214034e-10]
 
+start_pop = [0.0 for i in range(11)]
+
 pop_size = 11
 pop_size2 = 10
+
 # train_error, validation_error = [13510723304.19212, 368296592820.6967]
 
 def fitness(error1, error2):
@@ -19,6 +22,27 @@ def fitness(error1, error2):
 def mutation(population, probability, mutate_from, mutate_till):
     mutation_factor = random.uniform(mutate_from, mutate_till)
     return [np.random.choice([i, i*mutation_factor], p=[1-probability, probability]) if abs(i * mutation_factor) < 10 else i for i in population]
+
+def get_initial_population():
+    first_population = [np.copy(start_pop) for i in range(pop_size2)]
+    
+    for i in range(pop_size2):
+        for index in range(pop_size):
+            vary = 0
+            mutation_prob = random.randint(0, 10)
+            if mutation_prob < 3:
+                if index <= 4:
+                    vary = 1 + random.uniform(-0.05, 0.05)
+                else:
+                    vary = random.uniform(0, 1)
+                rem = initial_population[index]*vary
+
+                if abs(rem) < 10:
+                    first_population[i][index] = rem
+                elif abs(first_population[i][index]) >= 10:
+                    first_population[i][index] = random.uniform(-1,1)
+
+    return first_population
 
 def crossover(parent1, parent2):
     child1 = np.zeros(11)
@@ -42,10 +66,13 @@ def crossover(parent1, parent2):
 generation = 0
 fitness_pop = np.zeros(pop_size2)
 prob_pop = np.zeros(pop_size2)
-parents = [0 for i in range(10)]
+# parents = [0 for i in range(10)]
 
-for i in range(10):
-    parents[i] = np.copy(mutation(initial_population, 0.272727, 0.9, 1.1))
+parents = get_initial_population()
+# print(parents)
+
+# for i in range(10):
+#     parents[i] = np.copy(mutation(initial_population, 0.272727, 0.9, 1.1))
 
 fertile_parents = np.zeros(pop_size2)
 
@@ -56,7 +83,7 @@ colonization_fitness = []
 
 crossover_probability = 0.272727
 
-while generation < pop_size2:
+while generation < 20:
     for i in range(pop_size2):
 
         colonization.append(parents[i])
