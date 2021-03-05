@@ -12,7 +12,7 @@ initial_population = [0.0, -1.45799022e-12, -2.28980078e-13,  4.62010753e-11,
 start_pop = [0.0 for i in range(11)]
 
 pop_size = 11
-pop_size2 = 10
+pop_size2 = 20
 
 # train_error, validation_error = [13510723304.19212, 368296592820.6967]
 
@@ -25,7 +25,7 @@ def mutation(population, probability, mutate_from, mutate_till):
 
 def get_initial_population():
     first_population = [np.copy(start_pop) for i in range(pop_size2)]
-    
+
     for i in range(pop_size2):
         for index in range(pop_size):
             vary = 0
@@ -83,12 +83,12 @@ colonization_fitness = []
 
 crossover_probability = 0.272727
 
-while generation < 20:
+while generation < 10:
     for i in range(pop_size2):
 
         colonization.append(parents[i])
         errors = get_errors(SECRET_KEY, parents[i].tolist())
-        
+
         with open("logs.txt", "a", encoding="utf8") as text_file:
             print("GENERATION: ", generation, file=text_file)
             print("PARENTS: ", parents[i], file=text_file)
@@ -107,6 +107,8 @@ while generation < 20:
     np_fitness = np.copy(colonization_fitness)
     np_colonization = np.copy(colonization)
 
+    pop_size2 -= 2
+
     fertile_parents_idx = np_colonization[np.argsort(np_fitness)]
     fertile_parents_idx = fertile_parents_idx[-1*pop_size2:]
 
@@ -116,7 +118,7 @@ while generation < 20:
 
     mate_count = 0
 
-    while mate_count < 10:
+    while mate_count < pop_size2:
         offspring1, offspring2 = crossover(fertile_parents_idx[mate_count], fertile_parents_idx[mate_count+1])
         parents[mate_count] = offspring1
         parents[mate_count+1] = offspring2
