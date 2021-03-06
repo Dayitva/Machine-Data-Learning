@@ -61,7 +61,14 @@ def crossover(parent1, parent2):
     child1 = 0.5*((1 + beta) * parent1 + (1 - beta) * parent2)
     child2 = 0.5*((1 - beta) * parent1 + (1 + beta) * parent2)
 
-    return np.copy(mutation(child1, 0.272727, 0.9, 1.1)), np.copy(mutation(child2, 0.272727, 0.9, 1.1))
+    with open("generations.txt", "a", encoding="utf8") as text_file:
+        print(child1, file=text_file)
+        print(child2, file=text_file)
+
+    child1 = np.copy(mutation(child1, 0.272727, 0.9, 1.1))
+    child2 = np.copy(mutation(child2, 0.272727, 0.9, 1.1))
+
+    return child1, child2
 
 generation = 0
 fitness_pop = np.zeros(pop_size2)
@@ -84,15 +91,26 @@ colonization_fitness = []
 crossover_probability = 0.272727
 
 while generation < 10:
+
+    with open("generations.txt", "a", encoding="utf8") as text_file:
+        print("GENERATION: ", generation+1, file=text_file)
+        print("", file=text_file)
+
+    with open("generations.txt", "a", encoding="utf8") as text_file:
+        print("INITIAL POPULATION: ", file=text_file)
+
     for i in range(pop_size2):
 
         colonization.append(parents[i])
         errors = get_errors(SECRET_KEY, parents[i].tolist())
 
-        with open("logs.txt", "a", encoding="utf8") as text_file:
-            print("GENERATION: ", generation, file=text_file)
-            print("PARENTS: ", parents[i], file=text_file)
-            print("ERRORS: ", errors, file=text_file)
+        with open("generations.txt", "a", encoding="utf8") as text_file:
+            print(parents[i], file=text_file)
+
+        # with open("logs.txt", "a", encoding="utf8") as text_file:
+        #     print("GENERATION: ", generation, file=text_file)
+        #     print("PARENTS: ", parents[i], file=text_file)
+        #     print("ERRORS: ", errors, file=text_file)
 
         fitness_pop[i] = fitness(errors[0], errors[1])
         colonization_fitness.append(fitness_pop[i])
@@ -104,6 +122,10 @@ while generation < 10:
     # idx = [i for i in range(pop_size2)]
     # fertile_parents_idx = np.random.choice(idx, pop_size2, p=prob_pop)
 
+    with open("generations.txt", "a", encoding="utf8") as text_file:
+        print("", file=text_file)
+        print("AFTER SELECTION: ", file=text_file)
+
     np_fitness = np.copy(colonization_fitness)
     np_colonization = np.copy(colonization)
 
@@ -113,10 +135,16 @@ while generation < 10:
     fertile_parents_idx = fertile_parents_idx[-1*pop_size2:]
 
     for i in range(pop_size2):
-        with open("logs.txt", "a", encoding="utf8") as text_file:
-            print("FERTILE PARENTS: ", fertile_parents_idx[i], file=text_file)
+        # with open("logs.txt", "a", encoding="utf8") as text_file:
+        #     print("FERTILE PARENTS: ", fertile_parents_idx[i], file=text_file)
+        with open("generations.txt", "a", encoding="utf8") as text_file:
+            print(fertile_parents_idx[i], file=text_file)
 
     mate_count = 0
+
+    with open("generations.txt", "a", encoding="utf8") as text_file:
+        print("", file=text_file)
+        print("AFTER CROSSOVER: ", file=text_file)
 
     while mate_count < pop_size2:
         offspring1, offspring2 = crossover(fertile_parents_idx[mate_count], fertile_parents_idx[mate_count+1])
@@ -124,9 +152,21 @@ while generation < 10:
         parents[mate_count+1] = offspring2
         mate_count += 2
 
+    with open("generations.txt", "a", encoding="utf8") as text_file:
+        print("", file=text_file)
+        print("AFTER MUTATION: ", file=text_file)
+
+    for i in range(pop_size2):
+
+        with open("generations.txt", "a", encoding="utf8") as text_file:
+            print(parents[i], file=text_file)
+
     generation += 1
 
-    with open("logs.txt", "a", encoding="utf8") as text_file:
+    # with open("logs.txt", "a", encoding="utf8") as text_file:
+    #     print("====================================================", file=text_file)
+
+    with open("generations.txt", "a", encoding="utf8") as text_file:
         print("====================================================", file=text_file)
 
 population = len(colonization_fitness)
@@ -139,9 +179,9 @@ for i in range(0, population):
         max_idx = i
         alpha_fitness = colonization_fitness[max_idx]
 
-with open("logs.txt", "a", encoding="utf8") as text_file:
-    print("THE ALPHA IS: ", colonization[max_idx], " with fitness ", alpha_fitness," as logged on ", datetime.datetime.now(), file=text_file)
-    print("====================================================", file=text_file)
+# with open("logs.txt", "a", encoding="utf8") as text_file:
+#     print("THE ALPHA IS: ", colonization[max_idx], " with fitness ", alpha_fitness," as logged on ", datetime.datetime.now(), file=text_file)
+#     print("====================================================", file=text_file)
 
 
 
