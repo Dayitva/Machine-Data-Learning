@@ -12,7 +12,7 @@ initial_population = [0.0, -1.45799022e-12, -2.28980078e-13,  4.62010753e-11,
 start_pop = [0.0 for i in range(11)]
 
 pop_size = 11
-pop_size2 = 20
+pop_size2 = 30
 
 # train_error, validation_error = [13510723304.19212, 368296592820.6967]
 
@@ -90,7 +90,7 @@ colonization_fitness = []
 
 crossover_probability = 0.272727
 
-while generation < 10:
+while generation < 15:
 
     with open("generations.txt", "a", encoding="utf8") as text_file:
         print("GENERATION: ", generation+1, file=text_file)
