@@ -39,7 +39,7 @@ REWARD[0, :, :, :] = PRIZE
 print(REWARD)
 
 class State:
-    def __init__(self, position, enemy_health, num_arrows, materials):
+    def __init__(self, enemy_health, num_arrows, materials, position):
         if (enemy_health not in HEALTH_VALUES) or (num_arrows not in ARROWS_VALUES) or (materials not in MATERIAL_VALUES):
             raise ValueError
 
@@ -60,7 +60,7 @@ def action(action_type, state, costs):
     state = State(*state)
 
     if action_type == ACTION_SHOOT:
-        if state.arrows:
+        if state.arrows == 0:
             return None, None
 
         new_arrows = state.arrows - 1
@@ -103,6 +103,8 @@ def action(action_type, state, costs):
         return cost, choices
 
     elif action_type == ACTION_CRAFT:
+        if state.materials == 0:
+            return None, None
 
         choices = []
         if state.position == 0 and state.materials > 0 and state.arrows < 3:
@@ -121,6 +123,9 @@ def action(action_type, state, costs):
 
     elif action_type == ACTION_GATHER:
 
+        if state.materials == 2:
+            return None, None
+
         choices = []
         if state.position == 2 and state.materials < 2:
             choices.append((0.75, State(state.position, state.health, state.arrows, min(MATERIAL_VALUES[-1], state.materials + 1))))
@@ -134,7 +139,7 @@ def action(action_type, state, costs):
 
     elif action_type == ACTION_MOVE:
 
-        cost = 0
+        cost = 10000000
         choices = []
         if state.position == 0:
 
@@ -149,7 +154,7 @@ def action(action_type, state, costs):
                 for choice in temp_choice:
                     temp_cost += choice[0] * (costs[ACTION_MOVE] + REWARD[choice[1].show()])
 
-                if cost < temp_cost:
+                if cost > temp_cost:
                     cost = temp_cost
                     choices = temp_choice
 
@@ -165,7 +170,7 @@ def action(action_type, state, costs):
                 for choice in temp_choice:
                     temp_cost += choice[0] * (costs[ACTION_MOVE] + REWARD[choice[1].show()])
 
-                if cost < temp_cost:
+                if cost > temp_cost:
                     cost = temp_cost
                     choices = temp_choice
 
@@ -182,7 +187,7 @@ def action(action_type, state, costs):
                 for choice in temp_choice:
                     temp_cost += choice[0] * (costs[ACTION_MOVE] + REWARD[choice[1].show()])
 
-                if cost < temp_cost:
+                if cost > temp_cost:
                     cost = temp_cost
                     choices = temp_choice
 
@@ -198,7 +203,7 @@ def action(action_type, state, costs):
                 for choice in temp_choice:
                     temp_choice += choice[0] * (costs[ACTION_MOVE] + REWARD[choice[1].show()])
 
-                if cost < temp_cost:
+                if cost > temp_cost:
                     cost = temp_cost
                     choices = temp_choice
 
@@ -258,6 +263,7 @@ def value_iteration(delta_inp, gamma_inp, costs_inp, path):
         delta = np.NINF
 
         for state, util in np.ndenumerate(utilities):
+
             if state[0] == 0:
                 continue
             new_util = np.NINF
@@ -266,7 +272,8 @@ def value_iteration(delta_inp, gamma_inp, costs_inp, path):
 
                 if cost is None:
                     continue
-
+                print(state, cost)
+                print(list(map(lambda x: x[0]*utilities[x[1].show()], states)))
                 expected_util = reduce(
                     add, map(lambda x: x[0]*utilities[x[1].show()], states))
                 new_util = max(new_util, cost + gamma_inp * expected_util)
