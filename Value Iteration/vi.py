@@ -21,10 +21,10 @@ POSITION_FACTOR = 1 # (0, north), (1, east), (2, south), (3, west), (4, center)
 
 NUM_ACTIONS = 5 # (move, shoot, hit), (move, craft), (move, gather), (move, shoot, hit), (move, shoot)
 ACTION_MOVE = 0
-ACTION_SHOOT = 1
-ACTION_HIT = 2
+ACTION_SHOOT = 4
+ACTION_HIT = 1
 ACTION_CRAFT = 3
-ACTION_GATHER = 4
+ACTION_GATHER = 2
 
 TEAM = 21
 Y = 0.5
@@ -36,7 +36,7 @@ DELTA = 0.001
 
 REWARD = np.zeros((HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE, POSITION_RANGE))
 REWARD[0, :, :, :] = PRIZE
-print(REWARD)
+# print(REWARD)
 
 class State:
     def __init__(self, enemy_health, num_arrows, materials, position):
@@ -52,7 +52,7 @@ class State:
         return (self.health, self.arrows, self.materials, self.position)
 
     def __str__(self):
-        return f'({self.health},{self.arrows},{self.materials}, {self.position})'
+        return f'({self.health},{self.arrows},{self.materials},{self.position})'
 
 def action(action_type, state, costs):
     # returns cost, array of tuple of (probability, state)
@@ -78,7 +78,9 @@ def action(action_type, state, costs):
             choices.append(
                 (0.5, State(state.position, max(HEALTH_VALUES[0], state.health-1), new_arrows, state.materials)))
             choices.append((0.5, State(state.position, state.health, new_arrows, state.materials)))
-
+        else:
+            return None, None
+        
         cost = 0
         for choice in choices:
             cost += choice[0] * (costs[ACTION_SHOOT] + REWARD[choice[1].show()])
@@ -87,15 +89,20 @@ def action(action_type, state, costs):
 
     elif action_type == ACTION_HIT:
         choices = []
+        
         if state.position == 1:
             choices.append(
                 (0.2, State(state.position, max(HEALTH_VALUES[0], state.health-2), state.arrows, state.materials)))
-            choices.append((0.8, State(state.position, state.health, new_arrows, state.materials)))
+            choices.append((0.8, State(state.position, state.health, state.arrows, state.materials)))
+        
         elif state.position == 4:
             choices.append(
                 (0.1, State(state.position, max(HEALTH_VALUES[0], state.health-2), state.arrows, state.materials)))
-            choices.append((0.9, State(state.position, state.health, new_arrows, state.materials)))
+            choices.append((0.9, State(state.position, state.health, state.arrows, state.materials)))
 
+        else:
+            return None, None
+        
         cost = 0
         for choice in choices:
             cost += choice[0] * (costs[ACTION_HIT] + REWARD[choice[1].show()])
@@ -114,7 +121,9 @@ def action(action_type, state, costs):
                 ARROWS_VALUES[-1], state.arrows+2), max(MATERIAL_VALUES[0], state.materials - 1))))
             choices.append((0.15, State(state.position, state.health, min(
                 ARROWS_VALUES[-1], state.arrows+3), max(MATERIAL_VALUES[0], state.materials - 1))))
-
+        else:
+            return None, None
+        
         cost = 0
         for choice in choices:
             cost += choice[0] * (costs[ACTION_CRAFT] + REWARD[choice[1].show()])
@@ -130,7 +139,9 @@ def action(action_type, state, costs):
         if state.position == 2 and state.materials < 2:
             choices.append((0.75, State(state.position, state.health, state.arrows, min(MATERIAL_VALUES[-1], state.materials + 1))))
             choices.append((0.25, State(state.position, state.health, state.arrows, state.materials)))
-
+        else:
+            return None, None
+        
         cost = 0
         for choice in choices:
             cost += choice[0] * (costs[ACTION_GATHER] + REWARD[choice[1].show()])
@@ -201,7 +212,7 @@ def action(action_type, state, costs):
                 temp_choice.append((1, State(direction, state.health, state.arrows, state.materials)))
 
                 for choice in temp_choice:
-                    temp_choice += choice[0] * (costs[ACTION_MOVE] + REWARD[choice[1].show()])
+                    temp_cost += choice[0] * (costs[ACTION_MOVE] + REWARD[choice[1].show()])
 
                 if cost > temp_cost:
                     cost = temp_cost
@@ -220,7 +231,7 @@ def action(action_type, state, costs):
                 for choice in temp_choice:
                     temp_cost += choice[0] * (costs[ACTION_MOVE] + REWARD[choice[1].show()])
 
-                if cost < temp_cost:
+                if cost > temp_cost:
                     cost = temp_cost
                     choices = temp_choice
 
@@ -257,6 +268,7 @@ def value_iteration(delta_inp, gamma_inp, costs_inp, path):
 
     index = 0
     done = False
+    
     while not done:  # one iteration of value iteration
         #print(index)
         temp = np.zeros(utilities.shape)
@@ -264,16 +276,18 @@ def value_iteration(delta_inp, gamma_inp, costs_inp, path):
 
         for state, util in np.ndenumerate(utilities):
 
+            # print(state, util)
             if state[0] == 0:
                 continue
+            
             new_util = np.NINF
             for act_index in range(NUM_ACTIONS):
-                cost, states = action(act_index, state,costs_inp)
+                cost, states = action(act_index, state, costs_inp)
 
                 if cost is None:
                     continue
-                print(state, cost)
-                print(list(map(lambda x: x[0]*utilities[x[1].show()], states)))
+                
+                # print(cost, states)
                 expected_util = reduce(
                     add, map(lambda x: x[0]*utilities[x[1].show()], states))
                 new_util = max(new_util, cost + gamma_inp * expected_util)
@@ -290,7 +304,7 @@ def value_iteration(delta_inp, gamma_inp, costs_inp, path):
             best_action = None
 
             for act_index in range(NUM_ACTIONS):
-                cost, states = action(act_index, state, costs_inp )
+                cost, states = action(act_index, state, costs_inp)
 
                 if states is None:
                     continue
@@ -316,4 +330,4 @@ os.makedirs('outputs', exist_ok=True)
 
 # TASK 1
 path = 'outputs/task_1_trace.txt'
-value_iteration(DELTA, GAMMA, (COST,COST,COST, COST, COST), path)
+value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, COST), path)
