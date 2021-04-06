@@ -34,12 +34,12 @@ COST = -20
 GAMMA = 0.999
 DELTA = 0.001
 
-REWARD = np.zeros((HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE, POSITION_RANGE))
-REWARD[0, :, :, :] = PRIZE
+REWARD = np.zeros((POSITION_RANGE, HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE))
+REWARD[:, 0, :, :] = PRIZE
 # print(REWARD)
 
 class State:
-    def __init__(self, enemy_health, num_arrows, materials, position):
+    def __init__(self, position, enemy_health, num_arrows, materials):
         if (enemy_health not in HEALTH_VALUES) or (num_arrows not in ARROWS_VALUES) or (materials not in MATERIAL_VALUES):
             raise ValueError
 
@@ -49,10 +49,10 @@ class State:
         self.materials = materials
 
     def show(self):
-        return (self.health, self.arrows, self.materials, self.position)
+        return (self.position, self.health, self.arrows, self.materials)
 
     def __str__(self):
-        return f'({self.health},{self.arrows},{self.materials},{self.position})'
+        return f'({self.position}, {self.health},{self.arrows},{self.materials})'
 
 def action(action_type, state, costs):
     # returns cost, array of tuple of (probability, state)
@@ -243,10 +243,13 @@ def show(i, utilities, policies, path):
         utilities = np.around(utilities, 3)
         for state, util in np.ndenumerate(utilities):
             state = State(*state)
+            
             if state.health == 0:
                 f.write('{}:-1=[{:.3f}]\n'.format(state, util))
                 continue
-
+            
+            act_str = ""
+            
             if policies[state.show()] == ACTION_SHOOT:
                 act_str = 'SHOOT'
             elif policies[state.show()] == ACTION_HIT:
@@ -262,9 +265,8 @@ def show(i, utilities, policies, path):
         f.write('\n\n')
 
 def value_iteration(delta_inp, gamma_inp, costs_inp, path):
-    utilities = np.zeros((HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE, POSITION_RANGE))
-    policies = np.full((HEALTH_RANGE, ARROWS_RANGE,
-                        MATERIAL_RANGE, POSITION_RANGE), -1, dtype='int')
+    utilities = np.zeros((POSITION_RANGE, HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE))
+    policies = np.full((POSITION_RANGE, HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE), -1, dtype='int')
 
     index = 0
     done = False
@@ -277,7 +279,7 @@ def value_iteration(delta_inp, gamma_inp, costs_inp, path):
         for state, util in np.ndenumerate(utilities):
 
             # print(state, util)
-            if state[0] == 0:
+            if state[1] == 0:
                 continue
             
             new_util = np.NINF
