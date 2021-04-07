@@ -27,8 +27,12 @@ HEALTH_ARRAY = [0, 25, 50, 75, 100]
 MOOD_ARRAY = ["D", "R"]
 MOVE_ARRAY = ["UP", "DOWN", "LEFT", "RIGHT", "STAY"]
 
-NUM_ACTIONS = 5 # (move, shoot, hit), (move, craft), (move, gather), (move, shoot, hit), (move, shoot)
-ACTION_MOVE = 0
+NUM_ACTIONS = 9 # move_up, move_right, move_down, move_right, stay, shoot, hit, craft, gather
+ACTION_MOVE_UP = 0
+ACTION_MOVE_RIGHT = 5
+ACTION_MOVE_DOWN = 6
+ACTION_MOVE_LEFT = 7
+ACTION_STAY = 8
 ACTION_SHOOT = 1
 ACTION_HIT = 2
 ACTION_CRAFT = 3
@@ -250,127 +254,185 @@ def action(action_type, state, costs):
 
         return cost, choices
 
-    elif action_type == ACTION_MOVE:
+    elif action_type == ACTION_MOVE_UP:
 
-        cost = 10000000
+        choices = []
+        if state.position == 2:
+            if state.mood == 0:
+                choices.append((0.17, State(4, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.03, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.68, State(4, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.12, State(1, state.health, state.arrows, state.materials, 0)))
+            elif state.mood == 1:
+                choices.append((0.425, State(4, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.075, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.425, State(4, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.175, State(1, state.health, state.arrows, state.materials, 0)))
+        elif state.position == 4:
+            if state.mood == 0:
+                choices.append((0.17, State(0, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.03, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.68, State(0, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.12, State(1, state.health, state.arrows, state.materials, 0)))
+            elif state.mood == 1:
+                choices.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
+                REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
+                choices.append((0.425, State(0, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.075, State(1, state.health, state.arrows, state.materials, 1)))
+        else:
+            return None, None
+
+        cost = 0
+        for choice in choices:
+            cost += choice[0] * (costs[ACTION_MOVE_UP] + REWARD[choice[1].show()])
+
+        return cost, choices
+
+    elif action_type == ACTION_MOVE_DOWN:
+
         choices = []
         if state.position == 0:
-
-            directions = [4, 0]
-            for direction in directions:
-                temp_cost = 0
-                temp_choice = []
-
-                if state.mood == 0:
-                    temp_choice.append((0.17, State(direction, state.health, state.arrows, state.materials, 1)))
-                    temp_choice.append((0.03, State(1, state.health, state.arrows, state.materials, 1)))
-                    temp_choice.append((0.68, State(direction, state.health, state.arrows, state.materials, 0)))
-                    temp_choice.append((0.12, State(1, state.health, state.arrows, state.materials, 0)))
-                elif state.mood == 1:
-                    temp_choice.append((0.425, State(direction, state.health, state.arrows, state.materials, 0)))
-                    temp_choice.append((0.075, State(1, state.health, state.arrows, state.materials, 0)))
-                    temp_choice.append((0.425, State(direction, state.health, state.arrows, state.materials, 1)))
-                    temp_choice.append((0.075, State(1, state.health, state.arrows, state.materials, 1)))
-
-                for choice in temp_choice:
-                    temp_cost += choice[0] * (costs[ACTION_MOVE] + REWARD[choice[1].show()])
-
-                if cost > temp_cost:
-                    cost = temp_cost
-                    choices = temp_choice
-
-        elif state.position == 1:
-
-            directions = [4, 1]
-            for direction in directions:
-                temp_cost = 0
-                temp_choice = []
-
-                if state.mood == 0:
-                    temp_choice.append((0.2, State(direction, state.health, state.arrows, state.materials, 1)))
-                    temp_choice.append((0.8, State(direction, state.health, state.arrows, state.materials, 0)))
-                elif state.mood == 1:
-                    temp_choice.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
-                    REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
-                    temp_choice.append((0.5, State(direction, state.health, state.arrows, state.materials, 1)))
-
-                for choice in temp_choice:
-                    temp_cost += choice[0] * (costs[ACTION_MOVE] + REWARD[choice[1].show()])
-
-                if cost > temp_cost:
-                    cost = temp_cost
-                    choices = temp_choice
-
-        elif state.position == 2:
-
-            directions = [4, 2]
-            for direction in directions:
-                temp_cost = 0
-                temp_choice = []
-
-                if state.mood == 0:
-                    temp_choice.append((0.17, State(direction, state.health, state.arrows, state.materials, 1)))
-                    temp_choice.append((0.03, State(1, state.health, state.arrows, state.materials, 1)))
-                    temp_choice.append((0.68, State(direction, state.health, state.arrows, state.materials, 0)))
-                    temp_choice.append((0.12, State(1, state.health, state.arrows, state.materials, 0)))
-                elif state.mood == 1:
-                    temp_choice.append((0.425, State(direction, state.health, state.arrows, state.materials, 1)))
-                    temp_choice.append((0.425, State(1, state.health, state.arrows, state.materials, 1)))
-                    temp_choice.append((0.425, State(direction, state.health, state.arrows, state.materials, 0)))
-                    temp_choice.append((0.075, State(1, state.health, state.arrows, state.materials, 0)))
-
-                for choice in temp_choice:
-                    temp_cost += choice[0] * (costs[ACTION_MOVE] + REWARD[choice[1].show()])
-
-                if cost > temp_cost:
-                    cost = temp_cost
-                    choices = temp_choice
-
-        elif state.position == 3:
-
-            directions = [4, 3]
-            for direction in directions:
-                temp_cost = 0
-                temp_choice = []
-
-                if state.mood == 0:
-                    temp_choice.append((0.2, State(direction, state.health, state.arrows, state.materials, 1)))
-                    temp_choice.append((0.8, State(direction, state.health, state.arrows, state.materials, 0)))
-                elif state.mood == 1:
-                    temp_choice.append((0.5, State(direction, state.health, state.arrows, state.materials, 0)))
-                    temp_choice.append((0.5, State(direction, state.health, state.arrows, state.materials, 1)))
-
-                for choice in temp_choice:
-                    temp_cost += choice[0] * (costs[ACTION_MOVE] + REWARD[choice[1].show()])
-
-                if cost > temp_cost:
-                    cost = temp_cost
-                    choices = temp_choice
-
+            if state.mood == 0:
+                choices.append((0.17, State(4, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.03, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.68, State(4, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.12, State(1, state.health, state.arrows, state.materials, 0)))
+            elif state.mood == 1:
+                choices.append((0.425, State(4, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.075, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.425, State(4, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.175, State(1, state.health, state.arrows, state.materials, 0)))
         elif state.position == 4:
+            if state.mood == 0:
+                choices.append((0.17, State(3, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.03, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.68, State(3, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.12, State(1, state.health, state.arrows, state.materials, 0)))
+            elif state.mood == 1:
+                choices.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
+                REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
+                choices.append((0.425, State(3, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.075, State(1, state.health, state.arrows, state.materials, 1)))
+        else:
+            return None, None
 
-            directions = [0, 1, 2, 3, 4]
-            for direction in directions:
-                temp_cost = 0
-                temp_choice = []
+        cost = 0
+        for choice in choices:
+            cost += choice[0] * (costs[ACTION_MOVE_DOWN] + REWARD[choice[1].show()])
 
-                if state.mood == 0:
-                    temp_choice.append((0.17, State(direction, state.health, state.arrows, state.materials, 1)))
-                    temp_choice.append((0.03, State(1, state.health, state.arrows, state.materials, 1)))
-                    temp_choice.append((0.68, State(direction, state.health, state.arrows, state.materials, 0)))
-                    temp_choice.append((0.12, State(1, state.health, state.arrows, state.materials, 0)))
-                elif state.mood == 1:
-                    temp_choice.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
-                    REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
-                    temp_choice.append((0.425, State(direction, state.health, state.arrows, state.materials, 1)))
-                    temp_choice.append((0.075, State(1, state.health, state.arrows, state.materials, 1)))
+        return cost, choices
 
-                for choice in temp_choice:
-                    temp_cost += choice[0] * (costs[ACTION_MOVE] + REWARD[choice[1].show()])
+    elif action_type == ACTION_MOVE_RIGHT:
 
-                if cost > temp_cost:
-                    cost = temp_cost
-                    choices = temp_choice
+        choices = []
+        if state.position == 3:
+            if state.mood == 0:
+                choices.append((0.2, State(4, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.8, State(4, state.health, state.arrows, state.materials, 0)))
+            elif state.mood == 1:
+                choices.append((0.5, State(4, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.5, State(4, state.health, state.arrows, state.materials, 0)))
+        elif state.position == 4:
+            if state.mood == 0:
+                choices.append((0.17, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.03, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.68, State(1, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.12, State(1, state.health, state.arrows, state.materials, 0)))
+            elif state.mood == 1:
+                choices.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
+                REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
+                choices.append((0.425, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.075, State(1, state.health, state.arrows, state.materials, 1)))
+        else:
+            return None, None
+
+        cost = 0
+        for choice in choices:
+            cost += choice[0] * (costs[ACTION_MOVE_RIGHT] + REWARD[choice[1].show()])
+
+        return cost, choices
+
+    elif action_type == ACTION_MOVE_LEFT:
+
+        choices = []
+        if state.position == 1:
+            if state.mood == 0:
+                choices.append((0.2, State(4, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.8, State(4, state.health, state.arrows, state.materials, 0)))
+            elif state.mood == 1:
+                choices.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
+                REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
+                choices.append((0.5, State(4, state.health, state.arrows, state.materials, 1)))
+        elif state.position == 4:
+            if state.mood == 0:
+                choices.append((0.17, State(3, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.03, State(3, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.68, State(3, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.12, State(3, state.health, state.arrows, state.materials, 0)))
+            elif state.mood == 1:
+                choices.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
+                REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
+                choices.append((0.425, State(3, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.075, State(3, state.health, state.arrows, state.materials, 1)))
+        else:
+            return None, None
+
+        cost = 0
+        for choice in choices:
+            cost += choice[0] * (costs[ACTION_MOVE_LEFT] + REWARD[choice[1].show()])
+
+        return cost, choices
+
+    elif action_type == ACTION_STAY:
+
+        choices = []
+        if state.position == 0:
+            if state.mood == 0:
+                choices.append((0.17, State(0, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.03, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.68, State(0, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.12, State(1, state.health, state.arrows, state.materials, 0)))
+            elif state.mood == 1:
+                choices.append((0.425, State(0, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.075, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.425, State(0, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.175, State(1, state.health, state.arrows, state.materials, 0)))
+        elif state.position == 1:
+            if state.mood == 0:
+                choices.append((0.2, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.8, State(1, state.health, state.arrows, state.materials, 0)))
+            elif state.mood == 1:
+                choices.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
+                REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
+                choices.append((0.5, State(4, state.health, state.arrows, state.materials, 1)))
+        if state.position == 2:
+            if state.mood == 0:
+                choices.append((0.17, State(2, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.03, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.68, State(2, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.12, State(1, state.health, state.arrows, state.materials, 0)))
+            elif state.mood == 1:
+                choices.append((0.425, State(2, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.075, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.425, State(2, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.175, State(1, state.health, state.arrows, state.materials, 0)))
+        elif state.position == 4:
+            if state.mood == 0:
+                choices.append((0.17, State(4, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.03, State(1, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.68, State(4, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.12, State(1, state.health, state.arrows, state.materials, 0)))
+            elif state.mood == 1:
+                choices.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
+                REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
+                choices.append((0.425, State(4, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.075, State(1, state.health, state.arrows, state.materials, 1)))
+        else:
+            return None, None
+
+        cost = 0
+        for choice in choices:
+            cost += choice[0] * (costs[ACTION_STAY] + REWARD[choice[1].show()])
 
         return cost, choices
 
@@ -395,8 +457,16 @@ def show(i, utilities, policies, path):
                 act_str = 'CRAFT'
             elif policies[state.show()] == ACTION_GATHER:
                 act_str = 'GATHER'
-            elif policies[state.show()] == ACTION_MOVE:
-                act_str = 'MOVE'
+            elif policies[state.show()] == ACTION_MOVE_UP:
+                act_str = 'MOVE_UP'
+            elif policies[state.show()] == ACTION_MOVE_DOWN:
+                act_str = 'MOVE_DOWN'
+            elif policies[state.show()] == ACTION_MOVE_LEFT:
+                act_str = 'MOVE_LEFT'
+            elif policies[state.show()] == ACTION_MOVE_RIGHT:
+                act_str = 'MOVE_RIGHT'
+            elif policies[state.show()] == ACTION_STAY:
+                act_str = 'STAY'
 
             f.write('({},{},{},{},{}):{}=[{:.3f}]\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health], act_str, util))
         f.write('\n')
@@ -437,10 +507,10 @@ def value_iteration(delta_inp, gamma_inp, costs_inp, path):
         utilities = deepcopy(temp)
 
         for state, _ in np.ndenumerate(utilities):
-            
+
             if state[1] == 0:
                 continue
-            
+
             best_util = np.NINF
             best_action = None
 
@@ -471,8 +541,12 @@ os.makedirs('outputs', exist_ok=True)
 
 # TASK 1
 path = 'outputs/task_1_trace.txt'
-value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, COST), path)
+value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, COST, COST, COST, COST, COST), path)
+
+# TASK 2 Case 2
+path = 'outputs/task_2_2_trace.txt'
+value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, COST, COST, COST, COST, 0), path)
 
 # TASK 2 Case 3
 path = 'outputs/task_2_3_trace.txt'
-value_iteration(DELTA, 0.25, (COST, COST, COST, COST, COST), path)
+value_iteration(DELTA, 0.25, (COST, COST, COST, COST, COST, COST, COST, COST, COST), path)
