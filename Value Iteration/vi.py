@@ -20,14 +20,19 @@ HEALTH_FACTOR = 25 # 0, 25, 50, 75, 100
 ARROWS_FACTOR = 1 # 0, 1, 2, 3
 MATERIAL_FACTOR = 1 # 0, 1, 2
 POSITION_FACTOR = 1 # (0, north), (1, east), (2, south), (3, west), (4, center)
-MOOD_FACTOR = 1 # 0 - dormant, 1 - ready
+MOOD_FACTOR = 1 # (0, dormant), (1, ready)
+
+POSITION_ARRAY = ["N", "E", "S", "W", "C"]
+HEALTH_ARRAY = [0, 25, 50, 75, 100]
+MOOD_ARRAY = ["D", "R"]
+MOVE_ARRAY = ["UP", "DOWN", "LEFT", "RIGHT", "STAY"]
 
 NUM_ACTIONS = 5 # (move, shoot, hit), (move, craft), (move, gather), (move, shoot, hit), (move, shoot)
 ACTION_MOVE = 0
-ACTION_SHOOT = 4
-ACTION_HIT = 1
+ACTION_SHOOT = 1
+ACTION_HIT = 2
 ACTION_CRAFT = 3
-ACTION_GATHER = 2
+ACTION_GATHER = 4
 
 TEAM = 21
 Y = 0.5
@@ -56,7 +61,7 @@ class State:
         return (self.position, self.health, self.arrows, self.materials, self.mood)
 
     def __str__(self):
-        return f'({self.position}, {self.health},{self.arrows},{self.materials}, {self.mood})'
+        return f'({self.position},{self.health},{self.arrows},{self.materials},{self.mood})'
 
 def action(action_type, state, costs):
     # returns cost, array of tuple of (probability, state)
@@ -371,13 +376,13 @@ def action(action_type, state, costs):
 
 def show(i, utilities, policies, path):
     with open(path, 'a+') as f:
-        f.write('iteration={}\n'.format(i))
+        f.write('iteration={}\n'.format(i+1))
         utilities = np.around(utilities, 3)
         for state, util in np.ndenumerate(utilities):
             state = State(*state)
 
             if state.health == 0:
-                f.write('{}:-1=[{:.3f}]\n'.format(state, util))
+                f.write('({},{},{},{},{}):-1=[{:.3f}]\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health], util))
                 continue
 
             act_str = ""
@@ -393,8 +398,8 @@ def show(i, utilities, policies, path):
             elif policies[state.show()] == ACTION_MOVE:
                 act_str = 'MOVE'
 
-            f.write('{}:{}=[{:.3f}]\n'.format(state, act_str, util))
-        f.write('\n\n')
+            f.write('({},{},{},{},{}):{}=[{:.3f}]\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health], act_str, util))
+        f.write('\n')
 
 def value_iteration(delta_inp, gamma_inp, costs_inp, path):
     utilities = np.zeros((POSITION_RANGE, HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE, MOOD_RANGE))
@@ -432,8 +437,10 @@ def value_iteration(delta_inp, gamma_inp, costs_inp, path):
         utilities = deepcopy(temp)
 
         for state, _ in np.ndenumerate(utilities):
-            if state[0] == 0:
+            
+            if state[1] == 0:
                 continue
+            
             best_util = np.NINF
             best_action = None
 
