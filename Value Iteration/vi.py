@@ -533,8 +533,12 @@ def value_iteration(delta_inp, gamma_inp, costs_inp, path):
 os.makedirs('outputs', exist_ok=True)
 
 # TASK 1
-path = 'outputs/task_f_trace.txt'
+path = 'outputs/task_1_trace.txt'
 value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, COST, COST, COST, COST, COST), path)
+
+# TASK 2 Case 1
+# path = 'outputs/task_2_1_trace.txt'
+# value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, COST, COST, COST, COST, COST), path)
 
 # TASK 2 Case 2
 path = 'outputs/task_2_2_trace.txt'
