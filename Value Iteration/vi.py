@@ -4,6 +4,8 @@ from functools import reduce
 from operator import add
 import os
 
+NEGATIVE_INF = np.NINF
+
 HEALTH_RANGE = 5
 ARROWS_RANGE = 4
 MATERIAL_RANGE = 3
@@ -63,9 +65,6 @@ class State:
 
     def show(self):
         return (self.position, self.health, self.arrows, self.materials, self.mood)
-
-    def __str__(self):
-        return f'({self.position},{self.health},{self.arrows},{self.materials},{self.mood})'
 
 def action(action_type, state, costs):
     # returns cost, array of tuple of (probability, state)
@@ -435,7 +434,6 @@ def show(i, utilities, policies, path):
             state = State(*state)
 
             if state.health == 0:
-                # f.write('({},{},{},{},{}):NONE=[{:.3f}]\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health], util))
                 f.write('("{}",{},{},"{}",{}):"NONE",\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health]))
                 continue
 
@@ -460,46 +458,53 @@ def show(i, utilities, policies, path):
             elif policies[state.show()] == ACTION_STAY:
                 act_str = 'STAY'
 
-            # f.write('({},{},{},{},{}):{}=[{:.3f}]\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health], act_str, util))
             f.write('("{}",{},{},"{}",{}):"{}",\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health], act_str))
         f.write('\n')
 
+def util_addition(utilities, states):
+
+    final_util = 0
+
+    for state in states:
+        add_factor = state[0]*utilities[state[1].show()]
+        final_util += add_factor
+
+    return final_util
+
+
 def value_iteration(delta_inp, gamma_inp, costs_inp, path):
     utilities = np.zeros((POSITION_RANGE, HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE, MOOD_RANGE))
-    policies = np.full((POSITION_RANGE, HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE, MOOD_RANGE), -1, dtype='int')
+    policies = -1*np.ones((POSITION_RANGE, HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE, MOOD_RANGE))
 
-    index = 0
-    done = False
+    iteration = 0
+    convergence = 1
 
-    while not done:  # one iteration of value iteration
-        #print(index)
+    while convergence == 1:
         temp = np.zeros(utilities.shape)
-        delta = np.NINF
+        delta = NEGATIVE_INF
 
         for state, util in np.ndenumerate(utilities):
 
-            # print(state, util)
             if state[1] == 0:
                 continue
 
-            new_util = np.NINF
+            new_util = NEGATIVE_INF
             for act_index in range(NUM_ACTIONS):
                 cost, states = action(act_index, state, costs_inp)
 
                 if cost is None:
                     continue
 
-                # print(cost, states)
-                expected_util = reduce(
-                    add, map(lambda x: x[0]*utilities[x[1].show()], states))
+                expected_util = util_addition(utilities, states)
                 new_util = max(new_util, cost + gamma_inp * expected_util)
+                # print(expected_util, new_util)
 
             temp[state] = new_util
             delta = max(delta, abs(util - new_util))
 
         utilities = deepcopy(temp)
 
-        for state, _ in np.ndenumerate(utilities):
+        for state, temp_util in np.ndenumerate(utilities):
 
             if state[1] == 0:
                 continue
@@ -514,8 +519,7 @@ def value_iteration(delta_inp, gamma_inp, costs_inp, path):
                     continue
 
                 action_util = cost + gamma_inp * \
-                    reduce(
-                        add, map(lambda x: x[0]*utilities[x[1].show()], states))
+                    util_addition(utilities, states)
 
                 if action_util > best_util:
                     best_action = act_index
@@ -523,17 +527,17 @@ def value_iteration(delta_inp, gamma_inp, costs_inp, path):
 
             policies[state] = best_action
 
-        show(index, utilities, policies, path)
-        index += 1
+        show(iteration, utilities, policies, path)
+        iteration += 1
         if delta < delta_inp:
-            done = True
-    return index
+            convergence = 0
+    return iteration
 
 # PREP
 os.makedirs('outputs', exist_ok=True)
 
 # TASK 1
-path = 'outputs/task_1_trace.txt'
+path = 'outputs/test_trace.txt'
 value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, COST, COST, COST, COST, COST), path)
 
 # TASK 2 Case 1
@@ -541,9 +545,9 @@ value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, COST, COST, COST, COST, C
 # value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, COST, COST, COST, COST, COST), path)
 
 # TASK 2 Case 2
-path = 'outputs/task_2_2_trace.txt'
-value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, 0, COST, COST, COST, COST), path)
-
-# TASK 2 Case 3
-path = 'outputs/task_2_3_trace.txt'
-value_iteration(DELTA, 0.25, (COST, COST, COST, COST, COST, COST, COST, COST, COST), path)
+# path = 'outputs/task_2_2_trace.txt'
+# value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, 0, COST, COST, COST, COST), path)
+#
+# # TASK 2 Case 3
+# path = 'outputs/task_2_3_trace.txt'
+# value_iteration(DELTA, 0.25, (COST, COST, COST, COST, COST, COST, COST, COST, COST), path)
