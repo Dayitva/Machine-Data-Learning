@@ -29,14 +29,14 @@ MOVE_ARRAY = ["UP", "DOWN", "LEFT", "RIGHT", "STAY"]
 
 NUM_ACTIONS = 9 # move_up, move_right, move_down, move_right, stay, shoot, hit, craft, gather
 ACTION_MOVE_UP = 0
-ACTION_MOVE_RIGHT = 5
-ACTION_MOVE_DOWN = 6
-ACTION_MOVE_LEFT = 7
-ACTION_STAY = 8
-ACTION_SHOOT = 1
-ACTION_HIT = 2
-ACTION_CRAFT = 3
-ACTION_GATHER = 4
+ACTION_MOVE_RIGHT = 1
+ACTION_MOVE_DOWN = 2
+ACTION_MOVE_LEFT = 3
+ACTION_STAY = 4
+ACTION_SHOOT = 5
+ACTION_HIT = 6
+ACTION_CRAFT = 7
+ACTION_GATHER = 8
 
 TEAM = 21
 Y = 0.5
@@ -235,16 +235,10 @@ def action(action_type, state, costs):
                 choices.append((0.6, State(state.position, state.health, state.arrows, min(MATERIAL_VALUES[-1], state.materials + 1), 0)))
                 choices.append((0.2, State(state.position, state.health, state.arrows, state.materials, 0)))
             elif state.mood == 1:
-                if state.position == 1 or state.position == 4:
-                    choices.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
-                    REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
-                    choices.append((0.375, State(state.position, state.health, state.arrows, min(MATERIAL_VALUES[-1], state.materials + 1), 1)))
-                    choices.append((0.125, State(state.position, state.health, state.arrows, state.materials, 1)))
-                else:
-                    choices.append((0.375, State(state.position, state.health, state.arrows, min(MATERIAL_VALUES[-1], state.materials + 1), 0)))
-                    choices.append((0.125, State(state.position, state.health, state.arrows, state.materials, 0)))
-                    choices.append((0.375, State(state.position, state.health, state.arrows, min(MATERIAL_VALUES[-1], state.materials + 1), 1)))
-                    choices.append((0.125, State(state.position, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.375, State(state.position, state.health, state.arrows, min(MATERIAL_VALUES[-1], state.materials + 1), 0)))
+                choices.append((0.125, State(state.position, state.health, state.arrows, state.materials, 0)))
+                choices.append((0.375, State(state.position, state.health, state.arrows, min(MATERIAL_VALUES[-1], state.materials + 1), 1)))
+                choices.append((0.125, State(state.position, state.health, state.arrows, state.materials, 1)))
         else:
             return None, None
 
@@ -444,7 +438,8 @@ def show(i, utilities, policies, path):
             state = State(*state)
 
             if state.health == 0:
-                f.write('({},{},{},{},{}):-1=[{:.3f}]\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health], util))
+                # f.write('({},{},{},{},{}):NONE=[{:.3f}]\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health], util))
+                f.write('("{}",{},{},"{}",{}):"NONE",\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health]))
                 continue
 
             act_str = ""
@@ -458,17 +453,18 @@ def show(i, utilities, policies, path):
             elif policies[state.show()] == ACTION_GATHER:
                 act_str = 'GATHER'
             elif policies[state.show()] == ACTION_MOVE_UP:
-                act_str = 'MOVE_UP'
+                act_str = 'UP'
             elif policies[state.show()] == ACTION_MOVE_DOWN:
-                act_str = 'MOVE_DOWN'
+                act_str = 'DOWN'
             elif policies[state.show()] == ACTION_MOVE_LEFT:
-                act_str = 'MOVE_LEFT'
+                act_str = 'LEFT'
             elif policies[state.show()] == ACTION_MOVE_RIGHT:
-                act_str = 'MOVE_RIGHT'
+                act_str = 'RIGHT'
             elif policies[state.show()] == ACTION_STAY:
                 act_str = 'STAY'
 
-            f.write('({},{},{},{},{}):{}=[{:.3f}]\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health], act_str, util))
+            # f.write('({},{},{},{},{}):{}=[{:.3f}]\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health], act_str, util))
+            f.write('("{}",{},{},"{}",{}):"{}",\n'.format(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health], act_str))
         f.write('\n')
 
 def value_iteration(delta_inp, gamma_inp, costs_inp, path):
@@ -540,12 +536,12 @@ def value_iteration(delta_inp, gamma_inp, costs_inp, path):
 os.makedirs('outputs', exist_ok=True)
 
 # TASK 1
-path = 'outputs/task_1_trace.txt'
+path = 'outputs/task_f_trace.txt'
 value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, COST, COST, COST, COST, COST), path)
 
 # TASK 2 Case 2
 path = 'outputs/task_2_2_trace.txt'
-value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, COST, COST, COST, COST, 0), path)
+value_iteration(DELTA, GAMMA, (COST, COST, COST, COST, 0, COST, COST, COST, COST), path)
 
 # TASK 2 Case 3
 path = 'outputs/task_2_3_trace.txt'
