@@ -91,7 +91,7 @@ def action(action_type, state, costs):
                 choices.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
                 REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
                 choices.append((0.45, State(state.position, max(HEALTH_VALUES[0], state.health-1), new_arrows, state.materials, 1)))
-                choices.append((0.05, State(state.position, max(HEALTH_VALUES[0], state.health), new_arrows, state.materials, 1)))
+                choices.append((0.05, State(state.position, state.health, new_arrows, state.materials, 1)))
 
         elif state.position == 3:
             if state.mood == 0:
@@ -103,9 +103,9 @@ def action(action_type, state, costs):
                 choices.append((0.6, State(state.position, state.health, new_arrows, state.materials, 0)))
             elif state.mood == 1:
                 choices.append((0.125, State(state.position, max(HEALTH_VALUES[0], state.health-1), new_arrows, state.materials, 0)))
-                choices.append((0.375, State(state.position, max(HEALTH_VALUES[0], state.health), new_arrows, state.materials, 0)))
+                choices.append((0.375, State(state.position, state.health, new_arrows, state.materials, 0)))
                 choices.append((0.125, State(state.position, max(HEALTH_VALUES[0], state.health-1), new_arrows, state.materials, 1)))
-                choices.append((0.375, State(state.position, max(HEALTH_VALUES[0], state.health), new_arrows, state.materials, 1)))
+                choices.append((0.375, State(state.position, state.health, new_arrows, state.materials, 1)))
 
         elif state.position == 4:
             if state.mood == 0:
@@ -119,7 +119,7 @@ def action(action_type, state, costs):
                 choices.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
                 REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
                 choices.append((0.25, State(state.position, max(HEALTH_VALUES[0], state.health-1), 0, state.materials, 1)))
-                choices.append((0.25, State(state.position, max(HEALTH_VALUES[0], state.health), 0, state.materials, 1)))
+                choices.append((0.25, State(state.position, state.health, 0, state.materials, 1)))
         else:
             return None, None
 
@@ -190,28 +190,18 @@ def action(action_type, state, costs):
                 choices.append((0.12, State(state.position, state.health, min(
                     ARROWS_VALUES[-1], state.arrows+3), max(MATERIAL_VALUES[0], state.materials - 1), 0)))
             elif state.mood == 1:
-                if state.position == 1 or state.position == 4:
-                    choices.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
-                    REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = -40
-                    choices.append((0.25, State(state.position, state.health, min(
-                        ARROWS_VALUES[-1], state.arrows+1), max(MATERIAL_VALUES[0], state.materials - 1), 1)))
-                    choices.append((0.175, State(state.position, state.health, min(
-                        ARROWS_VALUES[-1], state.arrows+2), max(MATERIAL_VALUES[0], state.materials - 1), 1)))
-                    choices.append((0.075, State(state.position, state.health, min(
-                        ARROWS_VALUES[-1], state.arrows+3), max(MATERIAL_VALUES[0], state.materials - 1), 1)))
-                else:
-                    choices.append((0.25, State(state.position, state.health, min(
-                        ARROWS_VALUES[-1], state.arrows+1), max(MATERIAL_VALUES[0], state.materials - 1), 0)))
-                    choices.append((0.175, State(state.position, state.health, min(
-                        ARROWS_VALUES[-1], state.arrows+2), max(MATERIAL_VALUES[0], state.materials - 1), 0)))
-                    choices.append((0.075, State(state.position, state.health, min(
-                        ARROWS_VALUES[-1], state.arrows+3), max(MATERIAL_VALUES[0], state.materials - 1), 0)))
-                    choices.append((0.25, State(state.position, state.health, min(
-                        ARROWS_VALUES[-1], state.arrows+1), max(MATERIAL_VALUES[0], state.materials - 1), 1)))
-                    choices.append((0.175, State(state.position, state.health, min(
-                        ARROWS_VALUES[-1], state.arrows+2), max(MATERIAL_VALUES[0], state.materials - 1), 1)))
-                    choices.append((0.075, State(state.position, state.health, min(
-                        ARROWS_VALUES[-1], state.arrows+3), max(MATERIAL_VALUES[0], state.materials - 1), 1)))
+                choices.append((0.25, State(state.position, state.health, min(
+                    ARROWS_VALUES[-1], state.arrows+1), max(MATERIAL_VALUES[0], state.materials - 1), 0)))
+                choices.append((0.175, State(state.position, state.health, min(
+                    ARROWS_VALUES[-1], state.arrows+2), max(MATERIAL_VALUES[0], state.materials - 1), 0)))
+                choices.append((0.075, State(state.position, state.health, min(
+                    ARROWS_VALUES[-1], state.arrows+3), max(MATERIAL_VALUES[0], state.materials - 1), 0)))
+                choices.append((0.25, State(state.position, state.health, min(
+                    ARROWS_VALUES[-1], state.arrows+1), max(MATERIAL_VALUES[0], state.materials - 1), 1)))
+                choices.append((0.175, State(state.position, state.health, min(
+                    ARROWS_VALUES[-1], state.arrows+2), max(MATERIAL_VALUES[0], state.materials - 1), 1)))
+                choices.append((0.075, State(state.position, state.health, min(
+                    ARROWS_VALUES[-1], state.arrows+3), max(MATERIAL_VALUES[0], state.materials - 1), 1)))
 
         else:
             return None, None
