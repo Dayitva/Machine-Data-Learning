@@ -116,7 +116,7 @@ class State:
             else:
                 return 0
 
-    def take_action(self, action):
+    def take_action(self, action, idx):
         if action == ACTION_NONE:
             return []
 
@@ -141,6 +141,7 @@ class State:
                     choices.append((0.12, State(1, self.health, self.arrows, self.materials, 0)))
                 elif self.mood == 1:
                     choices.append((0.5, State(self.position, min(HEALTH_VALUES[-1], self.health+1), 0, self.materials, 0)))
+                    R[0][idx] += PUNISHMENT
                     choices.append((0.425, State(0, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.075, State(1, self.health, self.arrows, self.materials, 1)))
 
@@ -163,6 +164,7 @@ class State:
                     choices.append((0.12, State(1, self.health, self.arrows, self.materials, 0)))
                 elif self.mood == 1:
                     choices.append((0.5, State(self.position, min(HEALTH_VALUES[-1], self.health+1), 0, self.materials, 0)))
+                    R[0][idx] += PUNISHMENT
                     choices.append((0.425, State(1, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.075, State(1, self.health, self.arrows, self.materials, 1)))
 
@@ -189,6 +191,7 @@ class State:
                     choices.append((0.12, State(1, self.health, self.arrows, self.materials, 0)))
                 elif self.mood == 1:
                     choices.append((0.5, State(self.position, min(HEALTH_VALUES[-1], self.health+1), 0, self.materials, 0)))
+                    R[0][idx] += PUNISHMENT
                     choices.append((0.425, State(3, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.075, State(1, self.health, self.arrows, self.materials, 1)))
 
@@ -202,6 +205,7 @@ class State:
                     choices.append((0.8, State(4, self.health, self.arrows, self.materials, 0)))
                 elif self.mood == 1:
                     choices.append((0.5, State(self.position, min(HEALTH_VALUES[-1], self.health+1), 0, self.materials, 0)))
+                    R[0][idx] += PUNISHMENT
                     choices.append((0.5, State(4, self.health, self.arrows, self.materials, 1)))
             elif self.position == 4:
                 if self.mood == 0:
@@ -211,6 +215,7 @@ class State:
                     choices.append((0.12, State(3, self.health, self.arrows, self.materials, 0)))
                 elif self.mood == 1:
                     choices.append((0.5, State(self.position, min(HEALTH_VALUES[-1], self.health+1), 0, self.materials, 0)))
+                    R[0][idx] += PUNISHMENT
                     choices.append((0.425, State(3, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.075, State(3, self.health, self.arrows, self.materials, 1)))
 
@@ -235,7 +240,8 @@ class State:
                     choices.append((0.8, State(1, self.health, self.arrows, self.materials, 0)))
                 elif self.mood == 1:
                     choices.append((0.5, State(self.position, min(HEALTH_VALUES[-1], self.health+1), 0, self.materials, 0)))
-                    choices.append((0.5, State(4, self.health, self.arrows, self.materials, 1)))
+                    R[0][idx] += PUNISHMENT
+                    choices.append((0.5, State(1, self.health, self.arrows, self.materials, 1)))
             elif self.position == 2:
                 if self.mood == 0:
                     choices.append((0.17, State(2, self.health, self.arrows, self.materials, 1)))
@@ -262,12 +268,16 @@ class State:
                     choices.append((0.12, State(1, self.health, self.arrows, self.materials, 0)))
                 elif self.mood == 1:
                     choices.append((0.5, State(self.position, min(HEALTH_VALUES[-1], self.health+1), 0, self.materials, 0)))
+                    R[0][idx] += PUNISHMENT
                     choices.append((0.425, State(4, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.075, State(1, self.health, self.arrows, self.materials, 1)))
 
             return choices
 
         elif action == ACTION_SHOOT:
+            if state.arrows == 0:
+                return []
+
             new_arrows = self.arrows - 1
 
             choices = []
@@ -281,6 +291,7 @@ class State:
                     choices.append((0.08, State(self.position, self.health, new_arrows, self.materials, 0)))
                 elif self.mood == 1:
                     choices.append((0.5, State(self.position, min(HEALTH_VALUES[-1], self.health+1), 0, self.materials, 0)))
+                    R[0][idx] += PUNISHMENT
                     choices.append((0.45, State(self.position, max(HEALTH_VALUES[0], self.health-1), new_arrows, self.materials, 1)))
                     choices.append((0.05, State(self.position, self.health, new_arrows, self.materials, 1)))
 
@@ -308,6 +319,7 @@ class State:
                     choices.append((0.4, State(self.position, self.health, new_arrows, self.materials, 0)))
                 elif self.mood == 1:
                     choices.append((0.5, State(self.position, min(HEALTH_VALUES[-1], self.health+1), 0, self.materials, 0)))
+                    R[0][idx] += PUNISHMENT
                     choices.append((0.25, State(self.position, max(HEALTH_VALUES[0], self.health-1), 0, self.materials, 1)))
                     choices.append((0.25, State(self.position, self.health, 0, self.materials, 1)))
 
@@ -326,7 +338,7 @@ class State:
                     choices.append((0.64, State(self.position, self.health, self.arrows, self.materials, 0)))
                 elif self.mood == 1:
                     choices.append((0.5, State(self.position, min(HEALTH_VALUES[-1], self.health+1), 0, self.materials, 0)))
-                    REWARD[State(self.position, min(HEALTH_VALUES[-1], self.health+1), 0, self.materials, 0).show()] = PUNISHMENT
+                    R[0][idx] += PUNISHMENT
                     choices.append((0.1, State(self.position, max(HEALTH_VALUES[0], self.health-2), self.arrows, self.materials, 1)))
                     choices.append((0.4, State(self.position, self.health, self.arrows, self.materials, 1)))
 
@@ -340,6 +352,7 @@ class State:
                     choices.append((0.72, State(self.position, self.health, self.arrows, self.materials, 0)))
                 elif self.mood == 1:
                     choices.append((0.5, State(self.position, min(HEALTH_VALUES[-1], self.health+1), 0, self.materials, 0)))
+                    R[0][idx] += PUNISHMENT
                     choices.append(
                         (0.05, State(self.position, max(HEALTH_VALUES[0], self.health-2), self.arrows, self.materials, 1)))
                     choices.append((0.45, State(self.position, self.health, self.arrows, self.materials, 1)))
@@ -380,7 +393,7 @@ class State:
 
         elif action == ACTION_GATHER:
             choices = []
-            if self.position == 2:
+            if self.position == 2 and state.materials < 2:
                 if self.mood == 0:
                     choices.append((0.15, State(self.position, self.health, self.arrows, min(MATERIAL_VALUES[-1], self.materials + 1), 1)))
                     choices.append((0.05, State(self.position, self.health, self.arrows, self.materials, 1)))
@@ -406,7 +419,7 @@ for i in range(POSITION_RANGE):
                         if state.check_valid_action(n):
                             valid_actions[state.pos()].append(n)
                             VALID_PAIRS += 1
-                        
+
 print(VALID_PAIRS)
 
 x = cp.Variable((VALID_PAIRS, 1), name="x")
@@ -424,13 +437,13 @@ for i in range(POSITION_RANGE):
                     state = State(i,j,k,l,m)
                     for o in valid_actions[state.pos()]:
                         A[state.pos()][idx] += 1
-                        next_states = state.take_action(o)
-                        
+                        next_states = state.take_action(o, idx)
+
                         for next_state in next_states:
                             A[next_state[1].pos()][idx] -= next_state[0]
 
                         idx += 1
-        
+
 idx = 0
 for i in range(POSITION_RANGE):
     for j in range(HEALTH_RANGE):
@@ -450,5 +463,6 @@ solution = problem.solve()
 
 print(solution)
 print(x.value)
+print(A, A.shape)
 
 os.makedirs("outputs", exist_ok=True)

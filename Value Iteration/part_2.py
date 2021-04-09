@@ -373,7 +373,7 @@ def action(action_type, state, costs):
             elif state.mood == 1:
                 choices.append((0.5, State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0)))
                 REWARD[State(state.position, min(HEALTH_VALUES[-1], state.health+1), 0, state.materials, 0).show()] = PUNISHMENT
-                choices.append((0.5, State(4, state.health, state.arrows, state.materials, 1)))
+                choices.append((0.5, State(1, state.health, state.arrows, state.materials, 1)))
         elif state.position == 2:
             if state.mood == 0:
                 choices.append((0.17, State(2, state.health, state.arrows, state.materials, 1)))
@@ -416,7 +416,7 @@ def dump(iteration, utilities, policies, file):
     with open(file, 'a', encoding="utf8") as text_file:
         print("iteration={}".format(iteration), file=text_file)
         utilities = np.around(utilities, 3)
-        
+
         for state, util in np.ndenumerate(utilities):
             state = State(*state)
 
@@ -474,18 +474,18 @@ def calculate_utilities(temp, utilities, delta, gamma_inp, costs_inp):
                 continue
 
             expected_util = util_addition(utilities, states)
-            
+
             if new_util < cost + (gamma_inp * expected_util):
                 new_util = cost + (gamma_inp * expected_util)
             # print(expected_util, new_util)
 
         temp[state] = new_util
-        
+
         if delta < abs(util - new_util):
             delta = abs(util - new_util)
-            
+
     return temp, delta
-                
+
 def calculate_policies(policies, utilities, gamma_inp, costs_inp):
     for state, temp_util in np.ndenumerate(utilities):
 
@@ -500,7 +500,7 @@ def calculate_policies(policies, utilities, gamma_inp, costs_inp):
 
             if states is None:
                 continue
-            
+
             temp_util = util_addition(utilities, states)
             action_util = cost + (gamma_inp * temp_util)
 
@@ -509,7 +509,7 @@ def calculate_policies(policies, utilities, gamma_inp, costs_inp):
                 best_util = action_util
 
         policies[state] = best_action
-        
+
     return policies
 
 def perform_value_iteration(delta_inp, gamma_inp, costs_inp, path):
@@ -518,22 +518,22 @@ def perform_value_iteration(delta_inp, gamma_inp, costs_inp, path):
 
     iteration = 0
     convergence = 1
-    
+
     while convergence == 1:
         delta = NEGATIVE_INF
         temp = np.zeros(utilities.shape)
-        
+
         temp, delta = calculate_utilities(temp, utilities, delta, gamma_inp, costs_inp)
         utilities = copy.deepcopy(temp)
         policies = calculate_policies(policies, utilities, gamma_inp, costs_inp)
 
         dump(iteration, utilities, policies, path)
-        
+
         iteration += 1
-        
+
         if delta < delta_inp:
             convergence = 0
-            
+
     return iteration
 
 # Make directory
