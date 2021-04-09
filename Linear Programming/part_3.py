@@ -9,6 +9,12 @@ MOOD_RANGE = 2
 HEALTH_RANGE = 5
 NUM_STATES = 600 # (5 * 3 * 4 * 2 * 5)
 
+HEALTH_VALUES = tuple(range(HEALTH_RANGE)) # 0, 25, 50, 75, 100
+ARROWS_VALUES = tuple(range(ARROWS_RANGE)) # 0, 1, 2, 3
+MATERIAL_VALUES = tuple(range(MATERIAL_RANGE)) # 0, 1, 2
+POSITION_VALUES = tuple(range(POSITION_RANGE)) # (0, north), (1, east), (2, south), (3, west), (4, center)
+MOOD_VALUES = tuple(range(MOOD_RANGE)) # (0, dormant), (1, ready)
+
 POSITION_ARRAY = ["N", "E", "S", "W", "C"]
 HEALTH_ARRAY = [0, 25, 50, 75, 100]
 MOOD_ARRAY = ["D", "R"]
@@ -27,9 +33,12 @@ ACTION_GATHER = 8
 ACTION_NONE = 9
 
 VALID_PAIRS = 0
+PUNISHMENT = -40
+COST = -20
+REWARD = np.zeros((POSITION_RANGE, HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE, MOOD_RANGE))
 
 class State:
-    def __init__(self, position, materials, arrows, mood, enemy_health):
+    def __init__(self, position, enemy_health, arrows, materials, mood):
         self.position = position
         self.materials = materials
         self.arrows = arrows
@@ -37,14 +46,14 @@ class State:
         self.health = enemy_health
 
     def show(self):
-        return (self.position, self.materials, self.arrows, self.mood, self.health)
+        return (self.position, self.health, self.arrows, self.materials, self.mood)
 
     def pos(self):
-        return (self.position * (MATERIAL_RANGE * ARROWS_RANGE * MOOD_RANGE * HEALTH_RANGE) +
-                self.materials * (ARROWS_RANGE * MOOD_RANGE * HEALTH_RANGE) +
-                self.arrows * (MOOD_RANGE * HEALTH_RANGE) +
-                self.mood * (HEALTH_RANGE) +
-                self.health)
+        return (self.position * (HEALTH_RANGE * ARROWS_RANGE * MATERIAL_RANGE * MOOD_RANGE) +
+                self.health * (ARROWS_RANGE * MATERIAL_RANGE * MOOD_RANGE) +
+                self.arrows * (MATERIAL_RANGE * MOOD_RANGE) +
+                self.materials * (MOOD_RANGE) +
+                self.mood)
 
     def check_valid_action(self, action):
         if action == ACTION_NONE:
@@ -371,7 +380,7 @@ class State:
 
         elif action == ACTION_GATHER:
             choices = []
-            if self.position == 2 and self.materials < 2:
+            if self.position == 2:
                 if self.mood == 0:
                     choices.append((0.15, State(self.position, self.health, self.arrows, min(MATERIAL_VALUES[-1], self.materials + 1), 1)))
                     choices.append((0.05, State(self.position, self.health, self.arrows, self.materials, 1)))
@@ -385,21 +394,54 @@ class State:
 
             return choices
 
-for i in range(POSITION_RANGE):
-    for j in range(MATERIAL_RANGE):
-        for k in range(ARROWS_RANGE):
-            for l in range(MOOD_RANGE):
-                for m in range(HEALTH_RANGE):
-                    for n in range(NUM_ACTIONS):
-                        VALID_PAIRS += State(i,j,k,l,m).check_valid_action(n)
+valid_actions = [[] for i in range(600)]
 
+for i in range(POSITION_RANGE):
+    for j in range(HEALTH_RANGE):
+        for k in range(ARROWS_RANGE):
+            for l in range(MATERIAL_RANGE):
+                for m in range(MOOD_RANGE):
+                    for n in range(NUM_ACTIONS):
+                        state = State(i,j,k,l,m)
+                        if state.check_valid_action(n):
+                            valid_actions[state.pos()].append(n)
+                            VALID_PAIRS += 1
+                        
 print(VALID_PAIRS)
 
-x = cp.Variable(VALID_PAIRS, name="x")
+x = cp.Variable((VALID_PAIRS, 1), name="x")
 A = np.zeros((NUM_STATES, VALID_PAIRS), dtype=np.float64)
+R = np.ones((1, VALID_PAIRS)) * COST
+alpha = np.zeros((NUM_STATES, 1))
+alpha[State(4,4,3,2,1).pos()][0] = 1.0
 
-alpha = np.zeros((VALID_PAIRS, 1))
-alpha[State(4,2,3,1,100).pos()][0] = 1.0
+idx = 0
+for i in range(POSITION_RANGE):
+    for j in range(HEALTH_RANGE):
+        for k in range(ARROWS_RANGE):
+            for l in range(MATERIAL_RANGE):
+                for m in range(MOOD_RANGE):
+                    state = State(i,j,k,l,m)
+                    for o in valid_actions[state.pos()]:
+                        A[state.pos()][idx] += 1
+                        next_states = state.take_action(o)
+                        
+                        for next_state in next_states:
+                            A[next_state[1].pos()][idx] -= next_state[0]
+
+                        idx += 1
+        
+idx = 0
+for i in range(POSITION_RANGE):
+    for j in range(HEALTH_RANGE):
+        for k in range(ARROWS_RANGE):
+            for l in range(MATERIAL_RANGE):
+                for m in range(MOOD_RANGE):
+                    state = State(i,j,k,l,m)
+                    for o in valid_actions[state.pos()]:
+                        if o == ACTION_NONE:
+                            R[0][idx] = 0
+                        idx += 1
 
 constraints = [cp.matmul(A, x) == alpha, x>=0]
 objective = cp.Maximize(cp.matmul(R, x))
