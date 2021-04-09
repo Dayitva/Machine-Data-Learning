@@ -1,3 +1,4 @@
+import os
 import cvxpy as cp
 import numpy as np
 
@@ -13,3 +14,6 @@ solution = problem.solve()
 
 print(solution)
 print(x.value)
+
+os.makedirs("outputs", exist_ok=True)
+
