@@ -228,7 +228,7 @@ class State:
                     choices.append((0.425, State(0, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.075, State(1, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.425, State(0, self.health, self.arrows, self.materials, 0)))
-                    choices.append((0.175, State(1, self.health, self.arrows, self.materials, 0)))
+                    choices.append((0.075, State(1, self.health, self.arrows, self.materials, 0)))
             elif self.position == 1:
                 if self.mood == 0:
                     choices.append((0.2, State(1, self.health, self.arrows, self.materials, 1)))
@@ -429,10 +429,7 @@ for i in range(POSITION_RANGE):
                         next_states = state.take_action(o, idx)
 
                         for next_state in next_states:
-                            if state.position == next_state[1].position and state.health == next_state[1].health and state.arrows == next_state[1].arrows and state.materials == next_state[1].materials and state.mood == next_state[1].mood:
-                                A[next_state[1].pos()][idx] = 1-next_state[0]
-                            else:
-                                A[next_state[1].pos()][idx] -= next_state[0]
+                            A[next_state[1].pos()][idx] -= next_state[0]
 
                         idx += 1
 
