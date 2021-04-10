@@ -432,7 +432,7 @@ for i in range(POSITION_RANGE):
                             next_state = s[1]
                             outflow_prob = s[0]
                             A[next_state.pos()][index] -= outflow_prob
-                            
+
                         index += 1
 
 # Filling R (rewards) array
@@ -468,7 +468,7 @@ for i in range(POSITION_RANGE):
                     state = State(i,j,k,l,m)
                     temp_index = index
                     index += len(valid_actions[state.pos()])
-                    action_index = np.argmax(x[temp_index:index])
+                    action_index = np.argmax(x.value[temp_index:index])
                     best_action = valid_actions[state.pos()][action_index]
                     policy.append([(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health]), ACTION_ARRAY[best_action]])
 
@@ -487,5 +487,8 @@ final_output["objective"] = float(solution)
 
 os.makedirs("outputs", exist_ok=True)
 
-with open('outputs/part_3_output.json', 'w') as f:
-    json.dump(final_output, f)
+for i in policy:
+    print(i)
+
+# with open('outputs/part_3_output.json', 'w') as f:
+#     json.dump(final_output, f)
