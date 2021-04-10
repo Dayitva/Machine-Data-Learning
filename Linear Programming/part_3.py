@@ -1,4 +1,5 @@
 import os
+import json
 import cvxpy as cp
 import numpy as np
 
@@ -18,7 +19,7 @@ MOOD_VALUES = tuple(range(MOOD_RANGE)) # (0, dormant), (1, ready)
 POSITION_ARRAY = ["N", "E", "S", "W", "C"]
 HEALTH_ARRAY = [0, 25, 50, 75, 100]
 MOOD_ARRAY = ["D", "R"]
-MOVE_ARRAY = ["UP", "DOWN", "LEFT", "RIGHT", "STAY"]
+ACTION_ARRAY = ["UP", "RIGHT", "DOWN", "LEFT", "STAY", "SHOOT", "HIT", "CRAFT", "GATHER", "NONE"]
 
 NUM_ACTIONS = 10 # move_up, move_right, move_down, move_right, stay, shoot, hit, craft, gather
 ACTION_MOVE_UP = 0
@@ -44,9 +45,6 @@ class State:
         self.arrows = arrows
         self.mood = mood
         self.health = enemy_health
-
-    def show(self):
-        return (self.position, self.health, self.arrows, self.materials, self.mood)
 
     def pos(self):
         return (self.position * (HEALTH_RANGE * ARROWS_RANGE * MATERIAL_RANGE * MOOD_RANGE) +
@@ -116,7 +114,7 @@ class State:
             else:
                 return 0
 
-    def take_action(self, action, idx):
+    def take_action(self, action, index):
         if action == ACTION_NONE:
             return []
 
@@ -399,6 +397,7 @@ class State:
 
 valid_actions = [[] for i in range(600)]
 
+# Calculating Valid Pairs
 for i in range(POSITION_RANGE):
     for j in range(HEALTH_RANGE):
         for k in range(ARROWS_RANGE):
@@ -410,15 +409,15 @@ for i in range(POSITION_RANGE):
                             valid_actions[state.pos()].append(n)
                             VALID_PAIRS += 1
 
-print(VALID_PAIRS)
-
 x = cp.Variable((VALID_PAIRS, 1), name="x")
 A = np.zeros((NUM_STATES, VALID_PAIRS), dtype=np.float64)
 R = np.ones((1, VALID_PAIRS)) * COST
 alpha = np.zeros((NUM_STATES, 1))
 alpha[State(4,4,3,2,1).pos()][0] = 1.0
+policy = []
 
-idx = 0
+# Filing A matrix
+index = 0
 for i in range(POSITION_RANGE):
     for j in range(HEALTH_RANGE):
         for k in range(ARROWS_RANGE):
@@ -426,15 +425,18 @@ for i in range(POSITION_RANGE):
                 for m in range(MOOD_RANGE):
                     state = State(i,j,k,l,m)
                     for o in valid_actions[state.pos()]:
-                        A[state.pos()][idx] += 1
-                        next_states = state.take_action(o, idx)
+                        A[state.pos()][index] += 1
+                        next_states = state.take_action(o, index)
 
-                        for next_state in next_states:
-                            A[next_state[1].pos()][idx] -= next_state[0]
+                        for s in next_states:
+                            next_state = s[1]
+                            outflow_prob = s[0]
+                            A[next_state.pos()][index] -= outflow_prob
+                            
+                        index += 1
 
-                        idx += 1
-
-idx = 0
+# Filling R (rewards) array
+index = 0
 for i in range(POSITION_RANGE):
     for j in range(HEALTH_RANGE):
         for k in range(ARROWS_RANGE):
@@ -442,21 +444,48 @@ for i in range(POSITION_RANGE):
                 for m in range(MOOD_RANGE):
                     state = State(i,j,k,l,m)
                     if state.health == 0:
-                        R[0][idx] = 0
-                        idx += 1
+                        R[0][index] = 0
+                        index += 1
                         continue
                     for o in valid_actions[state.pos()]:
                         if state.mood == 1 and (state.position == 1 or state.position == 4):
-                            R[0][idx] += 0.5*PUNISHMENT
-                        idx += 1
+                            R[0][index] += 0.5*PUNISHMENT
+                        index += 1
 
+# Using cvxpy to solve the LP
 constraints = [cp.matmul(A, x) == alpha, x>=0]
 objective = cp.Maximize(cp.matmul(R, x))
 problem = cp.Problem(objective, constraints)
 solution = problem.solve()
 
-print(solution)
-print(x.value)
-print(np.unique(A, return_counts=True))
+# Generating policy
+index = 0
+for i in range(POSITION_RANGE):
+    for j in range(HEALTH_RANGE):
+        for k in range(ARROWS_RANGE):
+            for l in range(MATERIAL_RANGE):
+                for m in range(MOOD_RANGE):
+                    state = State(i,j,k,l,m)
+                    temp_index = index
+                    index += len(valid_actions[state.pos()])
+                    action_index = np.argmax(x[temp_index:index])
+                    best_action = valid_actions[state.pos()][action_index]
+                    policy.append([(POSITION_ARRAY[state.position], state.materials, state.arrows, MOOD_ARRAY[state.mood], HEALTH_ARRAY[state.health]), ACTION_ARRAY[best_action]])
+
+final_output = dict()
+
+final_output["a"] = A.tolist()
+final_output["r"] = R.tolist()
+final_output["alpha"] = alpha.tolist()
+final_output["x"] = x.value.tolist()
+final_output["policy"] = policy
+final_output["objective"] = float(solution)
+
+# print(final_output)
+# print(x.value)
+# print(policy)
 
 os.makedirs("outputs", exist_ok=True)
+
+with open('outputs/part_3_output.json', 'w') as f:
+    json.dump(final_output, f)
