@@ -132,7 +132,7 @@ class State:
                     choices.append((0.425, State(4, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.075, State(1, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.425, State(4, self.health, self.arrows, self.materials, 0)))
-                    choices.append((0.175, State(1, self.health, self.arrows, self.materials, 0)))
+                    choices.append((0.075, State(1, self.health, self.arrows, self.materials, 0)))
             elif self.position == 4:
                 if self.mood == 0:
                     choices.append((0.17, State(0, self.health, self.arrows, self.materials, 1)))
@@ -180,7 +180,7 @@ class State:
                     choices.append((0.425, State(4, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.075, State(1, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.425, State(4, self.health, self.arrows, self.materials, 0)))
-                    choices.append((0.175, State(1, self.health, self.arrows, self.materials, 0)))
+                    choices.append((0.075, State(1, self.health, self.arrows, self.materials, 0)))
             elif self.position == 4:
                 if self.mood == 0:
                     choices.append((0.17, State(3, self.health, self.arrows, self.materials, 1)))
@@ -246,7 +246,7 @@ class State:
                     choices.append((0.425, State(2, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.075, State(1, self.health, self.arrows, self.materials, 1)))
                     choices.append((0.425, State(2, self.health, self.arrows, self.materials, 0)))
-                    choices.append((0.175, State(1, self.health, self.arrows, self.materials, 0)))
+                    choices.append((0.075, State(1, self.health, self.arrows, self.materials, 0)))
             elif self.position == 3:
                 if self.mood == 0:
                     choices.append((0.2, State(3, self.health, self.arrows, self.materials, 1)))
