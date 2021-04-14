@@ -35,7 +35,7 @@ ACTION_NONE = 9
 
 VALID_PAIRS = 0
 PUNISHMENT = -40
-COST = -20
+COST = -10
 REWARD = np.zeros((POSITION_RANGE, HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE, MOOD_RANGE))
 
 class State:
@@ -481,14 +481,15 @@ final_output["x"] = x.value.tolist()
 final_output["policy"] = policy
 final_output["objective"] = float(solution)
 
+print(np.unique(R, return_counts=True))
 # print(final_output)
 # print(x.value)
 # print(policy)
 
 os.makedirs("outputs", exist_ok=True)
 
-for i in policy:
-    print(i)
+# for i in policy:
+#     print(i)
 
 # with open('outputs/part_3_output.json', 'w') as f:
 #     json.dump(final_output, f)
