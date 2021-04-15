@@ -35,8 +35,12 @@ ACTION_NONE = 9
 
 VALID_PAIRS = 0
 PUNISHMENT = -40
+<<<<<<< HEAD
 COST = -10
 REWARD = np.zeros((POSITION_RANGE, HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE, MOOD_RANGE))
+=======
+COST = -20
+>>>>>>> 797ee647f826fa9c218408a0ccf99d4ac4ca00ca
 
 class State:
     def __init__(self, position, enemy_health, arrows, materials, mood):
@@ -52,67 +56,6 @@ class State:
                 self.arrows * (MATERIAL_RANGE * MOOD_RANGE) +
                 self.materials * (MOOD_RANGE) +
                 self.mood)
-
-    def check_valid_action(self, action):
-        if action == ACTION_NONE:
-            if self.health == 0:
-                return 1
-            else:
-                return 0
-
-        if self.health == 0:
-            return 0
-
-        if action == ACTION_MOVE_UP:
-            if self.position == 2 or self.position == 4:
-                return 1
-            else:
-                return 0
-
-        elif action == ACTION_MOVE_RIGHT:
-            if self.position == 3 or self.position == 4:
-                return 1
-            else:
-                return 0
-
-        elif action == ACTION_MOVE_DOWN:
-            if self.position == 0 or self.position == 4:
-                return 1
-            else:
-                return 0
-
-        elif action == ACTION_MOVE_LEFT:
-            if self.position == 1 or self.position == 4:
-                return 1
-            else:
-                return 0
-
-        elif action == ACTION_STAY:
-            return 1
-
-        elif action == ACTION_SHOOT:
-            if (self.position == 1 or self.position == 3 or self.position == 4) and self.arrows > 0:
-                return 1
-            else:
-                return 0
-
-        elif action == ACTION_HIT:
-            if self.position == 1 or self.position == 4:
-                return 1
-            else:
-                return 0
-
-        elif action == ACTION_CRAFT:
-            if self.position == 0 and self.materials > 0:
-                return 1
-            else:
-                return 0
-
-        elif action == ACTION_GATHER:
-            if self.position == 2:
-                return 1
-            else:
-                return 0
 
     def take_action(self, action, index):
         if action == ACTION_NONE:
@@ -395,6 +338,67 @@ class State:
 
             return choices
 
+    def check_valid_action(self, action):
+        if action == ACTION_NONE:
+            if self.health == 0:
+                return 1
+            else:
+                return 0
+
+        if self.health == 0:
+            return 0
+
+        if action == ACTION_MOVE_UP:
+            if self.position == 2 or self.position == 4:
+                return 1
+            else:
+                return 0
+
+        elif action == ACTION_MOVE_RIGHT:
+            if self.position == 3 or self.position == 4:
+                return 1
+            else:
+                return 0
+
+        elif action == ACTION_MOVE_DOWN:
+            if self.position == 0 or self.position == 4:
+                return 1
+            else:
+                return 0
+
+        elif action == ACTION_MOVE_LEFT:
+            if self.position == 1 or self.position == 4:
+                return 1
+            else:
+                return 0
+
+        elif action == ACTION_STAY:
+            return 1
+
+        elif action == ACTION_SHOOT:
+            if (self.position == 1 or self.position == 3 or self.position == 4) and self.arrows > 0:
+                return 1
+            else:
+                return 0
+
+        elif action == ACTION_HIT:
+            if self.position == 1 or self.position == 4:
+                return 1
+            else:
+                return 0
+
+        elif action == ACTION_CRAFT:
+            if self.position == 0 and self.materials > 0:
+                return 1
+            else:
+                return 0
+
+        elif action == ACTION_GATHER:
+            if self.position == 2:
+                return 1
+            else:
+                return 0
+
 valid_actions = [[] for i in range(600)]
 
 # Calculating Valid Pairs
@@ -474,10 +478,20 @@ for i in range(POSITION_RANGE):
 
 final_output = dict()
 
+final_alpha = []
+alpha = alpha.tolist()
+for i in alpha:
+    final_alpha.append(i[0])
+
+final_x = []
+x = x.value.tolist()
+for i in x:
+    final_x.append(i[0])
+
 final_output["a"] = A.tolist()
-final_output["r"] = R.tolist()
-final_output["alpha"] = alpha.tolist()
-final_output["x"] = x.value.tolist()
+final_output["r"] = R[0].tolist()
+final_output["alpha"] = final_alpha
+final_output["x"] = final_x
 final_output["policy"] = policy
 final_output["objective"] = float(solution)
 
@@ -488,8 +502,5 @@ print(np.unique(R, return_counts=True))
 
 os.makedirs("outputs", exist_ok=True)
 
-# for i in policy:
-#     print(i)
-
-# with open('outputs/part_3_output.json', 'w') as f:
-#     json.dump(final_output, f)
+with open('outputs/part_3_output.json', 'w') as f:
+    json.dump(final_output, f)
