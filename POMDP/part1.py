@@ -4,8 +4,8 @@ from decimal import Decimal
 # Depending on user
 x = 0.78
 xDash = 0.22
-red = [0.85, 0.1, 0.85, 0.1, 0.1, 0.85]
-green = [0.15, 0.9, 0.15, 0.9, 0.9, 0.15]
+red = [0.8, 0.05, 0.8, 0.05, 0.05, 0.8]
+green = [0.2, 0.95, 0.2, 0.95, 0.95, 0.2]
 
 
 # No change from here
