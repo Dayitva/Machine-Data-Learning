@@ -35,7 +35,12 @@ ACTION_NONE = 9
 
 VALID_PAIRS = 0
 PUNISHMENT = -40
+<<<<<<< HEAD
+COST = -10
+REWARD = np.zeros((POSITION_RANGE, HEALTH_RANGE, ARROWS_RANGE, MATERIAL_RANGE, MOOD_RANGE))
+=======
 COST = -20
+>>>>>>> 797ee647f826fa9c218408a0ccf99d4ac4ca00ca
 
 class State:
     def __init__(self, position, enemy_health, arrows, materials, mood):
@@ -490,6 +495,7 @@ final_output["x"] = final_x
 final_output["policy"] = policy
 final_output["objective"] = float(solution)
 
+print(np.unique(R, return_counts=True))
 # print(final_output)
 # print(x.value)
 # print(policy)
